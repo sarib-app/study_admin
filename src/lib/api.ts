@@ -22,6 +22,49 @@ export type Subject = {
   topics: Topic[];
 };
 
+export type LearningContent = {
+  id: number;
+  topic_id: number;
+  type: 'note' | 'video' | 'flashcard';
+  title: string;
+  body: string | null;
+  position: number;
+};
+
+export type QuestionChoice = {
+  id?: number;
+  text: string;
+  is_correct: boolean;
+};
+
+export type Question = {
+  id: number;
+  subject_id: number;
+  topic_id: number | null;
+  prompt: string;
+  explanation: string | null;
+  choices: QuestionChoice[];
+};
+
+export type AdminDocument = {
+  id: number;
+  user_id: number;
+  subject_id: number;
+  type: 'pdf' | 'typed_note';
+  title: string;
+  size_bytes: number;
+  created_at: string;
+  user: { id: number; name: string; email: string };
+  subject: { id: number; name: string };
+};
+
+export type Paginated<T> = {
+  data: T[];
+  current_page: number;
+  last_page: number;
+  total: number;
+};
+
 export class ApiError extends Error {
   status: number;
 
@@ -63,6 +106,27 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return res.json();
 }
 
+/** Multipart variant for CSV import — omits the JSON Content-Type so the browser can set its
+ * own multipart boundary header. */
+async function requestForm<T>(path: string, formData: FormData): Promise<T> {
+  const token = getToken();
+  const res = await fetch(`${baseUrl}${path}`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new ApiError(body.message ?? `Request failed (${res.status})`, res.status);
+  }
+
+  return res.json();
+}
+
 export const authApi = {
   login: (email: string, password: string) =>
     request<{ user: AdminUser; token: string }>('/auth/login', {
@@ -92,4 +156,35 @@ export const topicsApi = {
   update: (id: number, data: { name?: string; position?: number }) =>
     request<Topic>(`/admin/topics/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   remove: (id: number) => request<void>(`/admin/topics/${id}`, { method: 'DELETE' }),
+};
+
+export const contentApi = {
+  list: (topicId: number) => request<LearningContent[]>(`/admin/topics/${topicId}/content`),
+  create: (topicId: number, data: { type: LearningContent['type']; title: string; body?: string }) =>
+    request<LearningContent>(`/admin/topics/${topicId}/content`, { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: number, data: { title?: string; body?: string; position?: number }) =>
+    request<LearningContent>(`/admin/content/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  remove: (id: number) => request<void>(`/admin/content/${id}`, { method: 'DELETE' }),
+};
+
+export const questionsApi = {
+  list: (subjectId: number, topicId?: number) =>
+    request<Question[]>(`/admin/subjects/${subjectId}/questions${topicId ? `?topic_id=${topicId}` : ''}`),
+  create: (subjectId: number, data: { topic_id?: number; prompt: string; explanation?: string; choices: QuestionChoice[] }) =>
+    request<Question>(`/admin/subjects/${subjectId}/questions`, { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: number, data: { topic_id?: number; prompt: string; explanation?: string; choices: QuestionChoice[] }) =>
+    request<Question>(`/admin/questions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  remove: (id: number) => request<void>(`/admin/questions/${id}`, { method: 'DELETE' }),
+  importCsv: (subjectId: number, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return requestForm<{ created: number; errors: { row: number; errors: Record<string, string[]> }[] }>(
+      `/admin/subjects/${subjectId}/questions/import`,
+      formData
+    );
+  },
+};
+
+export const documentsApi = {
+  list: (page = 1) => request<Paginated<AdminDocument>>(`/admin/documents?page=${page}`),
 };

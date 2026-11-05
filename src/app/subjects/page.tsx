@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState, type FormEvent } from 'react';
 
 import { Protected } from '@/components/protected';
@@ -26,6 +27,8 @@ export default function SubjectsPage() {
   }
 
   useEffect(() => {
+    // Genuine async API fetch-on-mount, not a synchronous re-render loop.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refresh();
   }, []);
 
@@ -113,12 +116,20 @@ export default function SubjectsPage() {
                       {subject.topics.length} topic{subject.topics.length === 1 ? '' : 's'}
                     </span>
                   </button>
-                  <button
-                    onClick={() => handleDeleteSubject(subject.id)}
-                    className="text-xs text-red-400 hover:text-red-300"
-                  >
-                    Delete
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <Link
+                      href={`/subjects/${subject.id}/questions`}
+                      className="text-xs text-neutral-400 hover:text-neutral-100"
+                    >
+                      Question bank
+                    </Link>
+                    <button
+                      onClick={() => handleDeleteSubject(subject.id)}
+                      className="text-xs text-red-400 hover:text-red-300"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
 
                 {expanded === subject.id && (
@@ -130,12 +141,20 @@ export default function SubjectsPage() {
                           className="flex items-center justify-between rounded-md bg-neutral-950 px-3 py-1.5 text-sm text-neutral-300"
                         >
                           {topic.name}
-                          <button
-                            onClick={() => handleDeleteTopic(topic.id)}
-                            className="text-xs text-red-400 hover:text-red-300"
-                          >
-                            Remove
-                          </button>
+                          <div className="flex items-center gap-3">
+                            <Link
+                              href={`/topics/${topic.id}/content`}
+                              className="text-xs text-neutral-400 hover:text-neutral-100"
+                            >
+                              Content
+                            </Link>
+                            <button
+                              onClick={() => handleDeleteTopic(topic.id)}
+                              className="text-xs text-red-400 hover:text-red-300"
+                            >
+                              Remove
+                            </button>
+                          </div>
                         </li>
                       ))}
                     </ul>
