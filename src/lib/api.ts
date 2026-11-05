@@ -46,6 +46,16 @@ export type Question = {
   choices: QuestionChoice[];
 };
 
+export type ManagedUser = {
+  id: number;
+  name: string;
+  email: string;
+  role: 'student' | 'admin';
+  xp: number;
+  created_at: string;
+  subjects_count: number;
+};
+
 export type AdminDocument = {
   id: number;
   user_id: number;
@@ -187,4 +197,8 @@ export const questionsApi = {
 
 export const documentsApi = {
   list: (page = 1) => request<Paginated<AdminDocument>>(`/admin/documents?page=${page}`),
+};
+
+export const usersApi = {
+  list: (page = 1) => request<Paginated<ManagedUser>>(`/admin/users?page=${page}`),
 };

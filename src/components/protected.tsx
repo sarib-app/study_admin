@@ -9,6 +9,7 @@ import { useAuth } from '@/lib/auth-context';
 const NAV_LINKS = [
   { href: '/subjects', label: 'Subjects & Topics' },
   { href: '/documents', label: 'Documents' },
+  { href: '/users', label: 'Users' },
 ];
 
 export function Protected({ children }: { children: ReactNode }) {
