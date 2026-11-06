@@ -1,6 +1,6 @@
 'use client';
 
-import { BookOpen, CheckCircle2, Clock, FileText, Target, Users } from 'lucide-react';
+import { BookOpen, CheckCircle2, Clock, FileText, Layers, ListChecks, Target, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
@@ -117,7 +117,7 @@ export default function OverviewPage() {
             </Card>
           </div>
 
-          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Link href="/subjects">
               <Card className="flex items-center gap-4 transition hover:border-accent/40">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
@@ -125,7 +125,29 @@ export default function OverviewPage() {
                 </div>
                 <div>
                   <p className="text-sm font-bold text-ink">{stats.total_subjects} subjects</p>
-                  <p className="text-xs text-faint">Manage subjects, topics & questions</p>
+                  <p className="text-xs text-faint">Subjects &amp; topics</p>
+                </div>
+              </Card>
+            </Link>
+            <Link href="/question-bank">
+              <Card className="flex items-center gap-4 transition hover:border-accent/40">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
+                  <ListChecks size={20} strokeWidth={2.25} />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-ink">Question bank</p>
+                  <p className="text-xs text-faint">Add or import quiz questions</p>
+                </div>
+              </Card>
+            </Link>
+            <Link href="/content">
+              <Card className="flex items-center gap-4 transition hover:border-accent/40">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
+                  <Layers size={20} strokeWidth={2.25} />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-ink">Learning content</p>
+                  <p className="text-xs text-faint">Notes, videos &amp; flashcards</p>
                 </div>
               </Card>
             </Link>

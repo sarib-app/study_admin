@@ -24,12 +24,19 @@ export function PageHeader({
 export function Card({
   children,
   className = '',
+  onClick,
 }: {
   children: ReactNode;
   className?: string;
+  onClick?: () => void;
 }) {
   return (
-    <div className={`rounded-2xl border border-line bg-surface p-6 ${className}`}>{children}</div>
+    <div
+      className={`rounded-2xl border border-line bg-surface p-6 ${className}`}
+      onClick={onClick}
+    >
+      {children}
+    </div>
   );
 }
 

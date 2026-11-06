@@ -4,6 +4,8 @@ import {
   BookOpen,
   FileText,
   LayoutDashboard,
+  Layers,
+  ListChecks,
   LogOut,
   Rocket,
   Settings,
@@ -17,6 +19,8 @@ import { useAuth } from '@/lib/auth-context';
 const NAV_LINKS = [
   { href: '/', label: 'Overview', icon: LayoutDashboard },
   { href: '/subjects', label: 'Subjects & Topics', icon: BookOpen },
+  { href: '/question-bank', label: 'Question Bank', icon: ListChecks },
+  { href: '/content', label: 'Learning Content', icon: Layers },
   { href: '/documents', label: 'Documents', icon: FileText },
   { href: '/users', label: 'Users', icon: UsersIcon },
   { href: '/settings', label: 'Settings', icon: Settings },
