@@ -1,8 +1,10 @@
 'use client';
 
+import { ChevronLeft, ChevronRight, FileText, StickyNote } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { Protected } from '@/components/protected';
+import { Badge, Button, Card, EmptyState, ErrorText, PageHeader } from '@/components/ui';
 import { documentsApi, type AdminDocument } from '@/lib/api';
 
 function formatSize(bytes: number): string {
@@ -35,68 +37,70 @@ export default function DocumentsPage() {
 
   return (
     <Protected>
-      <div className="mx-auto max-w-3xl">
-        <h1 className="text-lg font-semibold text-neutral-50">Documents</h1>
-        <p className="mt-1 text-sm text-neutral-400">
-          Read-only record of what students have uploaded or typed into Learn — content itself isn&apos;t editable here.
-        </p>
+      <PageHeader
+        title="Documents"
+        description="Read-only record of what students have uploaded or typed into Learn."
+      />
 
-        {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+      <ErrorText>{error}</ErrorText>
 
-        {loading ? (
-          <p className="mt-6 text-sm text-neutral-500">Loading…</p>
-        ) : (
-          <>
-            <table className="mt-6 w-full text-left text-sm">
+      {loading ? (
+        <p className="text-sm text-faint">Loading…</p>
+      ) : (
+        <Card className="max-w-5xl overflow-x-auto p-0">
+          {documents.length === 0 ? (
+            <div className="p-6">
+              <EmptyState>No documents yet.</EmptyState>
+            </div>
+          ) : (
+            <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-neutral-800 text-neutral-500">
-                  <th className="py-2 font-medium">Student</th>
-                  <th className="py-2 font-medium">Title</th>
-                  <th className="py-2 font-medium">Subject</th>
-                  <th className="py-2 font-medium">Type</th>
-                  <th className="py-2 font-medium">Size</th>
-                  <th className="py-2 font-medium">Uploaded</th>
+                <tr className="border-b border-line text-xs font-bold uppercase tracking-wide text-faint">
+                  <th className="px-5 py-3 font-bold">Student</th>
+                  <th className="px-5 py-3 font-bold">Title</th>
+                  <th className="px-5 py-3 font-bold">Subject</th>
+                  <th className="px-5 py-3 font-bold">Type</th>
+                  <th className="px-5 py-3 font-bold">Size</th>
+                  <th className="px-5 py-3 font-bold">Uploaded</th>
                 </tr>
               </thead>
               <tbody>
                 {documents.map((doc) => (
-                  <tr key={doc.id} className="border-b border-neutral-900">
-                    <td className="py-2 text-neutral-300">{doc.user.email}</td>
-                    <td className="py-2 text-neutral-100">{doc.title}</td>
-                    <td className="py-2 text-neutral-400">{doc.subject.name}</td>
-                    <td className="py-2 text-neutral-400">{doc.type === 'pdf' ? 'PDF' : 'Typed note'}</td>
-                    <td className="py-2 text-neutral-400">{formatSize(doc.size_bytes)}</td>
-                    <td className="py-2 text-neutral-400">{new Date(doc.created_at).toLocaleDateString()}</td>
+                  <tr key={doc.id} className="border-b border-line last:border-0">
+                    <td className="px-5 py-3 text-soft">{doc.user.email}</td>
+                    <td className="px-5 py-3 font-semibold text-ink">{doc.title}</td>
+                    <td className="px-5 py-3 text-soft">{doc.subject.name}</td>
+                    <td className="px-5 py-3">
+                      <Badge>
+                        <span className="flex items-center gap-1">
+                          {doc.type === 'pdf' ? <FileText size={11} /> : <StickyNote size={11} />}
+                          {doc.type === 'pdf' ? 'PDF' : 'Typed note'}
+                        </span>
+                      </Badge>
+                    </td>
+                    <td className="px-5 py-3 text-faint">{formatSize(doc.size_bytes)}</td>
+                    <td className="px-5 py-3 text-faint">{new Date(doc.created_at).toLocaleDateString()}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            {documents.length === 0 && <p className="mt-4 text-sm text-neutral-500">No documents yet.</p>}
+          )}
+        </Card>
+      )}
 
-            {lastPage > 1 && (
-              <div className="mt-4 flex items-center gap-3">
-                <button
-                  disabled={page <= 1}
-                  onClick={() => setPage((p) => p - 1)}
-                  className="rounded-md border border-neutral-700 px-3 py-1.5 text-sm text-neutral-200 disabled:opacity-40"
-                >
-                  Previous
-                </button>
-                <span className="text-sm text-neutral-500">
-                  Page {page} of {lastPage}
-                </span>
-                <button
-                  disabled={page >= lastPage}
-                  onClick={() => setPage((p) => p + 1)}
-                  className="rounded-md border border-neutral-700 px-3 py-1.5 text-sm text-neutral-200 disabled:opacity-40"
-                >
-                  Next
-                </button>
-              </div>
-            )}
-          </>
-        )}
-      </div>
+      {lastPage > 1 && (
+        <div className="mt-4 flex items-center gap-3">
+          <Button variant="outline" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+            <ChevronLeft size={14} />
+          </Button>
+          <span className="text-sm font-medium text-faint">
+            Page {page} of {lastPage}
+          </span>
+          <Button variant="outline" disabled={page >= lastPage} onClick={() => setPage((p) => p + 1)}>
+            <ChevronRight size={14} />
+          </Button>
+        </div>
+      )}
     </Protected>
   );
 }

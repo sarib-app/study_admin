@@ -1,17 +1,25 @@
 'use client';
 
+import { ArrowLeft, FileText, Layers, Trash2, Video } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Suspense, useEffect, useState, type FormEvent } from 'react';
 
 import { Protected } from '@/components/protected';
+import { Button, Card, ErrorText, Input, PageHeader, Textarea } from '@/components/ui';
 import { contentApi, type LearningContent } from '@/lib/api';
 
-const TYPES: { value: LearningContent['type']; label: string; bodyLabel: string; bodyPlaceholder: string }[] = [
-  { value: 'note', label: 'Note', bodyLabel: 'Body', bodyPlaceholder: 'The note text…' },
-  { value: 'video', label: 'Video', bodyLabel: 'Video URL', bodyPlaceholder: 'https://…' },
-  { value: 'flashcard', label: 'Flashcard', bodyLabel: 'Back', bodyPlaceholder: 'Back of the card…' },
+const TYPES: { value: LearningContent['type']; label: string; bodyPlaceholder: string; icon: typeof FileText }[] = [
+  { value: 'note', label: 'Note', bodyPlaceholder: 'The note text…', icon: FileText },
+  { value: 'video', label: 'Video', bodyPlaceholder: 'https://…', icon: Video },
+  { value: 'flashcard', label: 'Flashcard', bodyPlaceholder: 'Back of the card…', icon: Layers },
 ];
+
+const TYPE_ICON: Record<LearningContent['type'], typeof FileText> = {
+  note: FileText,
+  video: Video,
+  flashcard: Layers,
+};
 
 export default function TopicContentPage() {
   return (
@@ -78,70 +86,71 @@ function TopicContentInner() {
 
   return (
     <Protected>
-      <div className="mx-auto max-w-2xl">
-        <Link href="/subjects" className="text-sm text-neutral-500 hover:text-neutral-300">
-          &larr; Back to subjects
-        </Link>
-        <h1 className="mt-3 text-lg font-semibold text-neutral-50">Learning content</h1>
-        <p className="mt-1 text-sm text-neutral-400">Notes, videos and flashcards shown in the Learn tab for this topic.</p>
+      <Link href="/subjects" className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-faint hover:text-ink">
+        <ArrowLeft size={14} /> Back to subjects
+      </Link>
+      <PageHeader title="Learning content" description="Notes, videos and flashcards shown in the Learn tab for this topic." />
 
-        <form onSubmit={handleCreate} className="mt-6 space-y-3 rounded-lg border border-neutral-800 bg-neutral-900 p-4">
-          <div className="flex gap-2">
-            {TYPES.map((t) => (
-              <button
-                key={t.value}
-                type="button"
-                onClick={() => setType(t.value)}
-                className={`rounded-md border px-3 py-1.5 text-sm ${
-                  type === t.value
-                    ? 'border-neutral-100 bg-neutral-100 text-neutral-900'
-                    : 'border-neutral-700 text-neutral-300'
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder={type === 'flashcard' ? 'Front' : 'Title'}
-            className="w-full rounded-md border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-neutral-400"
-          />
-          <textarea
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            placeholder={activeType.bodyPlaceholder}
-            rows={3}
-            className="w-full rounded-md border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-neutral-400"
-          />
-          <button type="submit" className="rounded-md bg-neutral-100 px-4 py-2 text-sm font-medium text-neutral-900">
-            Add {activeType.label.toLowerCase()}
-          </button>
-        </form>
+      <div className="max-w-2xl space-y-6">
+        <Card>
+          <form onSubmit={handleCreate} className="space-y-3">
+            <div className="flex gap-2">
+              {TYPES.map((t) => {
+                const Icon = t.icon;
+                return (
+                  <button
+                    key={t.value}
+                    type="button"
+                    onClick={() => setType(t.value)}
+                    className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-sm font-semibold transition ${
+                      type === t.value
+                        ? 'border-transparent bg-gradient-to-br from-accent to-accent2 text-white'
+                        : 'border-line text-soft hover:text-ink'
+                    }`}
+                  >
+                    <Icon size={14} /> {t.label}
+                  </button>
+                );
+              })}
+            </div>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={type === 'flashcard' ? 'Front' : 'Title'} />
+            <Textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder={activeType.bodyPlaceholder} rows={3} />
+            <Button type="submit" disabled={!title.trim()}>
+              Add {activeType.label.toLowerCase()}
+            </Button>
+          </form>
+        </Card>
 
-        {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+        <ErrorText>{error}</ErrorText>
 
         {loading ? (
-          <p className="mt-6 text-sm text-neutral-500">Loading…</p>
+          <p className="text-sm text-faint">Loading…</p>
         ) : (
-          <ul className="mt-6 space-y-2">
-            {items.map((item) => (
-              <li key={item.id} className="rounded-lg border border-neutral-800 bg-neutral-900 p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <span className="text-xs uppercase tracking-wide text-neutral-500">{item.type}</span>
-                    <p className="mt-1 text-sm font-medium text-neutral-100">{item.title}</p>
-                    {item.body && <p className="mt-1 text-sm text-neutral-400">{item.body}</p>}
+          <div className="space-y-2">
+            {items.map((item) => {
+              const Icon = TYPE_ICON[item.type];
+              return (
+                <Card key={item.id}>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex min-w-0 items-start gap-3">
+                      <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
+                        <Icon size={14} />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-xs font-bold uppercase tracking-wide text-faint">{item.type}</span>
+                        <p className="mt-0.5 text-sm font-semibold text-ink">{item.title}</p>
+                        {item.body && <p className="mt-1 text-sm text-soft">{item.body}</p>}
+                      </div>
+                    </div>
+                    <button onClick={() => handleDelete(item.id)} className="shrink-0 rounded-lg p-2 text-faint hover:bg-[rgba(255,107,107,0.1)] hover:text-danger">
+                      <Trash2 size={14} />
+                    </button>
                   </div>
-                  <button onClick={() => handleDelete(item.id)} className="shrink-0 text-xs text-red-400 hover:text-red-300">
-                    Delete
-                  </button>
-                </div>
-              </li>
-            ))}
-            {items.length === 0 && <p className="text-sm text-neutral-500">No content yet.</p>}
-          </ul>
+                </Card>
+              );
+            })}
+            {items.length === 0 && <p className="text-sm text-faint">No content yet.</p>}
+          </div>
         )}
       </div>
     </Protected>

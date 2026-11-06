@@ -202,3 +202,33 @@ export const documentsApi = {
 export const usersApi = {
   list: (page = 1) => request<Paginated<ManagedUser>>(`/admin/users?page=${page}`),
 };
+
+export type OverviewStats = {
+  total_students: number;
+  active_students_30d: number;
+  completed_sessions: number;
+  total_study_minutes: number;
+  total_quiz_attempts: number;
+  quiz_completion_rate: number;
+  total_subjects: number;
+  total_documents: number;
+  recent_documents: {
+    id: number;
+    title: string;
+    type: 'pdf' | 'typed_note';
+    created_at: string;
+    user: { id: number; name: string; email: string };
+    subject: { id: number; name: string };
+  }[];
+};
+
+export const dashboardApi = {
+  overview: () => request<OverviewStats>('/admin/overview'),
+};
+
+export const adminProfileApi = {
+  update: (data: { name: string }) =>
+    request<AdminUser>('/admin/profile', { method: 'PUT', body: JSON.stringify(data) }),
+  updatePassword: (data: { current_password: string; password: string; password_confirmation: string }) =>
+    request<{ message: string }>('/admin/profile/password', { method: 'PUT', body: JSON.stringify(data) }),
+};

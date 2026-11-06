@@ -1,10 +1,23 @@
 'use client';
 
+import { BookOpen, ChevronDown, ChevronRight, ListTree, Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState, type FormEvent } from 'react';
 
 import { Protected } from '@/components/protected';
+import { Button, Card, ErrorText, Input, PageHeader } from '@/components/ui';
 import { subjectsApi, topicsApi, type Subject } from '@/lib/api';
+
+const SUBJECT_COLORS: Record<string, string> = {
+  math: 'bg-math/15 text-math',
+  bio: 'bg-bio/15 text-bio',
+  hist: 'bg-hist/15 text-hist',
+  eng: 'bg-eng/15 text-eng',
+};
+
+function subjectColorClass(colorKey: string | null): string {
+  return SUBJECT_COLORS[colorKey ?? ''] ?? 'bg-accent-soft text-accent';
+}
 
 export default function SubjectsPage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -77,111 +90,110 @@ export default function SubjectsPage() {
 
   return (
     <Protected>
-      <div className="mx-auto max-w-2xl">
-        <h1 className="text-lg font-semibold text-neutral-50">Subjects &amp; Topics</h1>
-        <p className="mt-1 text-sm text-neutral-400">
-          The global subject list every student picks from during onboarding.
-        </p>
+      <PageHeader
+        title="Subjects & Topics"
+        description="The global list every student picks from during onboarding."
+      />
 
-        <form onSubmit={handleCreateSubject} className="mt-6 flex gap-2">
-          <input
+      <Card className="mb-6 max-w-2xl">
+        <form onSubmit={handleCreateSubject} className="flex gap-2">
+          <Input
             value={newSubjectName}
             onChange={(e) => setNewSubjectName(e.target.value)}
             placeholder="New subject name"
-            className="flex-1 rounded-md border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-neutral-400"
           />
-          <button
-            type="submit"
-            className="rounded-md bg-neutral-100 px-4 py-2 text-sm font-medium text-neutral-900"
-          >
-            Add subject
-          </button>
+          <Button type="submit" disabled={!newSubjectName.trim()}>
+            <Plus size={16} /> Add
+          </Button>
         </form>
+      </Card>
 
-        {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+      <ErrorText>{error}</ErrorText>
 
-        {loading ? (
-          <p className="mt-6 text-sm text-neutral-500">Loading…</p>
-        ) : (
-          <ul className="mt-6 space-y-2">
-            {subjects.map((subject) => (
-              <li key={subject.id} className="rounded-lg border border-neutral-800 bg-neutral-900">
-                <div className="flex items-center justify-between px-4 py-3">
+      {loading ? (
+        <p className="text-sm text-faint">Loading…</p>
+      ) : (
+        <div className="max-w-2xl space-y-3">
+          {subjects.map((subject) => {
+            const isOpen = expanded === subject.id;
+            return (
+              <Card key={subject.id} className="p-0 overflow-hidden">
+                <div className="flex items-center justify-between px-5 py-4">
                   <button
-                    onClick={() => setExpanded(expanded === subject.id ? null : subject.id)}
-                    className="text-left text-sm font-medium text-neutral-100"
+                    onClick={() => setExpanded(isOpen ? null : subject.id)}
+                    className="flex min-w-0 flex-1 items-center gap-3 text-left"
                   >
-                    {subject.name}
-                    <span className="ml-2 text-xs text-neutral-500">
-                      {subject.topics.length} topic{subject.topics.length === 1 ? '' : 's'}
-                    </span>
+                    {isOpen ? (
+                      <ChevronDown size={16} className="shrink-0 text-faint" />
+                    ) : (
+                      <ChevronRight size={16} className="shrink-0 text-faint" />
+                    )}
+                    <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${subjectColorClass(subject.color_key)}`}>
+                      <BookOpen size={16} strokeWidth={2.25} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-ink">{subject.name}</p>
+                      <p className="text-xs text-faint">
+                        {subject.topics.length} topic{subject.topics.length === 1 ? '' : 's'}
+                      </p>
+                    </div>
                   </button>
-                  <div className="flex items-center gap-3">
+                  <div className="flex shrink-0 items-center gap-1">
                     <Link
                       href={`/subjects/${subject.id}/questions`}
-                      className="text-xs text-neutral-400 hover:text-neutral-100"
+                      className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-soft hover:bg-white/[0.04] hover:text-ink"
                     >
-                      Question bank
+                      <ListTree size={13} /> Question bank
                     </Link>
                     <button
                       onClick={() => handleDeleteSubject(subject.id)}
-                      className="text-xs text-red-400 hover:text-red-300"
+                      className="rounded-lg p-2 text-faint hover:bg-[rgba(255,107,107,0.1)] hover:text-danger"
                     >
-                      Delete
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 </div>
 
-                {expanded === subject.id && (
-                  <div className="border-t border-neutral-800 px-4 py-3">
-                    <ul className="space-y-1">
+                {isOpen && (
+                  <div className="border-t border-line bg-black/10 px-5 py-4">
+                    <ul className="space-y-1.5">
                       {subject.topics.map((topic) => (
                         <li
                           key={topic.id}
-                          className="flex items-center justify-between rounded-md bg-neutral-950 px-3 py-1.5 text-sm text-neutral-300"
+                          className="flex items-center justify-between rounded-lg bg-white/[0.02] px-3 py-2 text-sm text-soft"
                         >
                           {topic.name}
                           <div className="flex items-center gap-3">
-                            <Link
-                              href={`/topics/${topic.id}/content`}
-                              className="text-xs text-neutral-400 hover:text-neutral-100"
-                            >
+                            <Link href={`/topics/${topic.id}/content`} className="text-xs font-semibold text-accent hover:underline">
                               Content
                             </Link>
-                            <button
-                              onClick={() => handleDeleteTopic(topic.id)}
-                              className="text-xs text-red-400 hover:text-red-300"
-                            >
-                              Remove
+                            <button onClick={() => handleDeleteTopic(topic.id)} className="text-faint hover:text-danger">
+                              <Trash2 size={13} />
                             </button>
                           </div>
                         </li>
                       ))}
+                      {subject.topics.length === 0 && (
+                        <li className="px-3 py-2 text-sm text-faint">No topics yet.</li>
+                      )}
                     </ul>
-                    <form
-                      onSubmit={(e) => handleCreateTopic(subject.id, e)}
-                      className="mt-3 flex gap-2"
-                    >
-                      <input
+                    <form onSubmit={(e) => handleCreateTopic(subject.id, e)} className="mt-3 flex gap-2">
+                      <Input
                         value={newTopicName}
                         onChange={(e) => setNewTopicName(e.target.value)}
                         placeholder="New topic name"
-                        className="flex-1 rounded-md border border-neutral-700 bg-neutral-950 px-3 py-1.5 text-sm text-neutral-100 outline-none focus:border-neutral-400"
                       />
-                      <button
-                        type="submit"
-                        className="rounded-md border border-neutral-700 px-3 py-1.5 text-sm text-neutral-200"
-                      >
-                        Add topic
-                      </button>
+                      <Button type="submit" variant="outline" disabled={!newTopicName.trim()}>
+                        Add
+                      </Button>
                     </form>
                   </div>
                 )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </Protected>
   );
 }

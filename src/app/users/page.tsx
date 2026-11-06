@@ -1,8 +1,10 @@
 'use client';
 
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { Protected } from '@/components/protected';
+import { Badge, Button, Card, EmptyState, ErrorText, PageHeader } from '@/components/ui';
 import { usersApi, type ManagedUser } from '@/lib/api';
 
 export default function UsersPage() {
@@ -29,76 +31,72 @@ export default function UsersPage() {
 
   return (
     <Protected>
-      <div className="mx-auto max-w-3xl">
-        <h1 className="text-lg font-semibold text-neutral-50">Users</h1>
-        <p className="mt-1 text-sm text-neutral-400">
-          Every student and admin account. No subscription column yet &mdash; that feature isn&apos;t built.
-        </p>
+      <PageHeader
+        title="Users"
+        description="Every student and admin account. No subscription column yet — that feature isn't built."
+      />
 
-        {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+      <ErrorText>{error}</ErrorText>
 
-        {loading ? (
-          <p className="mt-6 text-sm text-neutral-500">Loading…</p>
-        ) : (
-          <>
-            <table className="mt-6 w-full text-left text-sm">
+      {loading ? (
+        <p className="text-sm text-faint">Loading…</p>
+      ) : (
+        <Card className="max-w-5xl overflow-x-auto p-0">
+          {users.length === 0 ? (
+            <div className="p-6">
+              <EmptyState>No users yet.</EmptyState>
+            </div>
+          ) : (
+            <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-neutral-800 text-neutral-500">
-                  <th className="py-2 font-medium">Name</th>
-                  <th className="py-2 font-medium">Email</th>
-                  <th className="py-2 font-medium">Role</th>
-                  <th className="py-2 font-medium">Subjects</th>
-                  <th className="py-2 font-medium">XP</th>
-                  <th className="py-2 font-medium">Joined</th>
+                <tr className="border-b border-line text-xs font-bold uppercase tracking-wide text-faint">
+                  <th className="px-5 py-3 font-bold">Name</th>
+                  <th className="px-5 py-3 font-bold">Email</th>
+                  <th className="px-5 py-3 font-bold">Role</th>
+                  <th className="px-5 py-3 font-bold">Subjects</th>
+                  <th className="px-5 py-3 font-bold">XP</th>
+                  <th className="px-5 py-3 font-bold">Joined</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map((user) => (
-                  <tr key={user.id} className="border-b border-neutral-900">
-                    <td className="py-2 text-neutral-100">{user.name}</td>
-                    <td className="py-2 text-neutral-300">{user.email}</td>
-                    <td className="py-2">
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-xs ${
-                          user.role === 'admin' ? 'bg-neutral-100 text-neutral-900' : 'text-neutral-400'
-                        }`}
-                      >
-                        {user.role}
-                      </span>
+                  <tr key={user.id} className="border-b border-line last:border-0">
+                    <td className="px-5 py-3 font-semibold text-ink">
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent-soft text-xs font-bold text-accent">
+                          {user.name.charAt(0).toUpperCase()}
+                        </div>
+                        {user.name}
+                      </div>
                     </td>
-                    <td className="py-2 text-neutral-400">{user.subjects_count}</td>
-                    <td className="py-2 text-neutral-400">{user.xp}</td>
-                    <td className="py-2 text-neutral-400">{new Date(user.created_at).toLocaleDateString()}</td>
+                    <td className="px-5 py-3 text-soft">{user.email}</td>
+                    <td className="px-5 py-3">
+                      <Badge tone={user.role === 'admin' ? 'accent' : 'neutral'}>{user.role}</Badge>
+                    </td>
+                    <td className="px-5 py-3 text-faint">{user.subjects_count}</td>
+                    <td className="px-5 py-3 text-faint">{user.xp}</td>
+                    <td className="px-5 py-3 text-faint">{new Date(user.created_at).toLocaleDateString()}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            {users.length === 0 && <p className="mt-4 text-sm text-neutral-500">No users yet.</p>}
+          )}
+        </Card>
+      )}
 
-            {lastPage > 1 && (
-              <div className="mt-4 flex items-center gap-3">
-                <button
-                  disabled={page <= 1}
-                  onClick={() => setPage((p) => p - 1)}
-                  className="rounded-md border border-neutral-700 px-3 py-1.5 text-sm text-neutral-200 disabled:opacity-40"
-                >
-                  Previous
-                </button>
-                <span className="text-sm text-neutral-500">
-                  Page {page} of {lastPage}
-                </span>
-                <button
-                  disabled={page >= lastPage}
-                  onClick={() => setPage((p) => p + 1)}
-                  className="rounded-md border border-neutral-700 px-3 py-1.5 text-sm text-neutral-200 disabled:opacity-40"
-                >
-                  Next
-                </button>
-              </div>
-            )}
-          </>
-        )}
-      </div>
+      {lastPage > 1 && (
+        <div className="mt-4 flex items-center gap-3">
+          <Button variant="outline" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+            <ChevronLeft size={14} />
+          </Button>
+          <span className="text-sm font-medium text-faint">
+            Page {page} of {lastPage}
+          </span>
+          <Button variant="outline" disabled={page >= lastPage} onClick={() => setPage((p) => p + 1)}>
+            <ChevronRight size={14} />
+          </Button>
+        </div>
+      )}
     </Protected>
   );
 }

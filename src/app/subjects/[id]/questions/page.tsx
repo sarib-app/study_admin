@@ -1,10 +1,12 @@
 'use client';
 
+import { ArrowLeft, CheckCircle2, Circle, Download, Trash2, Upload } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState, type FormEvent } from 'react';
 
 import { Protected } from '@/components/protected';
+import { Button, Card, ErrorText, Input, PageHeader, Select, Textarea } from '@/components/ui';
 import { questionsApi, topicsApi, type Question, type QuestionChoice, type Topic } from '@/lib/api';
 
 const EMPTY_CHOICES: QuestionChoice[] = [
@@ -143,31 +145,27 @@ function QuestionBankContent() {
 
   return (
     <Protected>
-      <div className="mx-auto max-w-2xl">
-        <Link href="/subjects" className="text-sm text-neutral-500 hover:text-neutral-300">
-          &larr; Back to subjects
-        </Link>
-        <h1 className="mt-3 text-lg font-semibold text-neutral-50">Question bank</h1>
-        <p className="mt-1 text-sm text-neutral-400">The pool quizzes for this subject draw from.</p>
+      <Link href="/subjects" className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-faint hover:text-ink">
+        <ArrowLeft size={14} /> Back to subjects
+      </Link>
+      <PageHeader title="Question bank" description="The pool quizzes for this subject draw from." />
 
-        <div className="mt-6 flex items-center gap-3 rounded-lg border border-neutral-800 bg-neutral-900 p-4">
-          <button onClick={downloadTemplate} className="rounded-md border border-neutral-700 px-3 py-1.5 text-sm text-neutral-200">
-            Download CSV template
-          </button>
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="rounded-md border border-neutral-700 px-3 py-1.5 text-sm text-neutral-200"
-          >
-            Import CSV
-          </button>
+      <div className="max-w-2xl space-y-6">
+        <Card className="flex items-center gap-3">
+          <Button variant="outline" onClick={downloadTemplate}>
+            <Download size={15} /> Download CSV template
+          </Button>
+          <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+            <Upload size={15} /> Import CSV
+          </Button>
           <input ref={fileInputRef} type="file" accept=".csv" onChange={handleImport} className="hidden" />
-        </div>
+        </Card>
 
         {importResult && (
-          <div className="mt-3 rounded-lg border border-neutral-800 bg-neutral-900 p-4 text-sm">
-            <p className="text-neutral-200">{importResult.created} question(s) imported.</p>
+          <Card>
+            <p className="text-sm font-semibold text-ink">{importResult.created} question(s) imported.</p>
             {importResult.errors.length > 0 && (
-              <ul className="mt-2 space-y-1 text-red-400">
+              <ul className="mt-2 space-y-1 text-sm text-danger">
                 {importResult.errors.map((e) => (
                   <li key={e.row}>
                     Row {e.row}: {Object.values(e.errors).flat().join(', ')}
@@ -175,97 +173,84 @@ function QuestionBankContent() {
                 ))}
               </ul>
             )}
-          </div>
+          </Card>
         )}
 
-        <form onSubmit={handleCreate} className="mt-6 space-y-3 rounded-lg border border-neutral-800 bg-neutral-900 p-4">
-          <select
-            value={topicId}
-            onChange={(e) => setTopicId(e.target.value)}
-            className="w-full rounded-md border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-neutral-100"
-          >
-            <option value="">No topic (mixed-practice bank)</option>
-            {topics.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </select>
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Question prompt"
-            rows={2}
-            className="w-full rounded-md border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-neutral-400"
-          />
-          <div className="space-y-2">
-            {choices.map((choice, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  checked={choice.is_correct}
-                  onChange={() => setCorrectChoice(i)}
-                  title="Correct answer"
-                />
-                <input
-                  value={choice.text}
-                  onChange={(e) => updateChoiceText(i, e.target.value)}
-                  placeholder={`Choice ${i + 1}`}
-                  className="flex-1 rounded-md border border-neutral-700 bg-neutral-950 px-3 py-1.5 text-sm text-neutral-100 outline-none focus:border-neutral-400"
-                />
-                {choices.length > 2 && (
-                  <button type="button" onClick={() => removeChoice(i)} className="text-xs text-red-400">
-                    Remove
+        <Card>
+          <form onSubmit={handleCreate} className="space-y-3">
+            <Select value={topicId} onChange={(e) => setTopicId(e.target.value)}>
+              <option value="">No topic (mixed-practice bank)</option>
+              {topics.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </Select>
+            <Textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Question prompt" rows={2} />
+            <div className="space-y-2">
+              {choices.map((choice, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <button type="button" onClick={() => setCorrectChoice(i)} title="Mark as correct answer">
+                    {choice.is_correct ? (
+                      <CheckCircle2 size={18} className="text-bio" />
+                    ) : (
+                      <Circle size={18} className="text-faint" />
+                    )}
                   </button>
-                )}
-              </div>
-            ))}
-            {choices.length < 6 && (
-              <button type="button" onClick={addChoice} className="text-xs text-neutral-400 hover:text-neutral-200">
-                + Add choice
-              </button>
-            )}
-          </div>
-          <textarea
-            value={explanation}
-            onChange={(e) => setExplanation(e.target.value)}
-            placeholder="Explanation shown after the quiz is submitted (optional)"
-            rows={2}
-            className="w-full rounded-md border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-neutral-400"
-          />
-          <button type="submit" className="rounded-md bg-neutral-100 px-4 py-2 text-sm font-medium text-neutral-900">
-            Add question
-          </button>
-        </form>
+                  <Input value={choice.text} onChange={(e) => updateChoiceText(i, e.target.value)} placeholder={`Choice ${i + 1}`} />
+                  {choices.length > 2 && (
+                    <button type="button" onClick={() => removeChoice(i)} className="shrink-0 text-faint hover:text-danger">
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
+              ))}
+              {choices.length < 6 && (
+                <button type="button" onClick={addChoice} className="text-xs font-semibold text-accent hover:underline">
+                  + Add choice
+                </button>
+              )}
+            </div>
+            <Textarea
+              value={explanation}
+              onChange={(e) => setExplanation(e.target.value)}
+              placeholder="Explanation shown after the quiz is submitted (optional)"
+              rows={2}
+            />
+            <Button type="submit" disabled={!prompt.trim() || choices.some((c) => !c.text.trim())}>
+              Add question
+            </Button>
+          </form>
+        </Card>
 
-        {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+        <ErrorText>{error}</ErrorText>
 
         {loading ? (
-          <p className="mt-6 text-sm text-neutral-500">Loading…</p>
+          <p className="text-sm text-faint">Loading…</p>
         ) : (
-          <ul className="mt-6 space-y-2">
+          <div className="space-y-2">
             {questions.map((q) => (
-              <li key={q.id} className="rounded-lg border border-neutral-800 bg-neutral-900 p-4">
+              <Card key={q.id}>
                 <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-neutral-100">{q.prompt}</p>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-ink">{q.prompt}</p>
                     <ul className="mt-2 space-y-0.5 text-sm">
                       {q.choices.map((c) => (
-                        <li key={c.text} className={c.is_correct ? 'text-green-400' : 'text-neutral-400'}>
+                        <li key={c.text} className={c.is_correct ? 'font-medium text-bio' : 'text-faint'}>
                           {c.is_correct ? '✓ ' : '· '}
                           {c.text}
                         </li>
                       ))}
                     </ul>
                   </div>
-                  <button onClick={() => handleDelete(q.id)} className="shrink-0 text-xs text-red-400 hover:text-red-300">
-                    Delete
+                  <button onClick={() => handleDelete(q.id)} className="shrink-0 rounded-lg p-2 text-faint hover:bg-[rgba(255,107,107,0.1)] hover:text-danger">
+                    <Trash2 size={14} />
                   </button>
                 </div>
-              </li>
+              </Card>
             ))}
-            {questions.length === 0 && <p className="text-sm text-neutral-500">No questions yet.</p>}
-          </ul>
+            {questions.length === 0 && <p className="text-sm text-faint">No questions yet.</p>}
+          </div>
         )}
       </div>
     </Protected>

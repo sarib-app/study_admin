@@ -1,7 +1,9 @@
 'use client';
 
+import { Rocket } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 
+import { Button, ErrorText, Input } from '@/components/ui';
 import { useAuth } from '@/lib/auth-context';
 
 export default function LoginPage() {
@@ -26,44 +28,41 @@ export default function LoginPage() {
 
   return (
     <div className="flex flex-1 items-center justify-center p-6">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-sm rounded-xl border border-neutral-800 bg-neutral-900 p-8"
-      >
-        <h1 className="text-xl font-semibold text-neutral-50">Study Pilot Admin</h1>
-        <p className="mt-1 text-sm text-neutral-400">Sign in with your admin account.</p>
+      <form onSubmit={handleSubmit} className="w-full max-w-sm rounded-2xl border border-line bg-surface p-8">
+        <div className="mb-6 flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-accent2 shadow-[0_8px_16px_rgba(91,127,255,0.35)]">
+            <Rocket size={21} className="text-white" strokeWidth={2.25} />
+          </div>
+          <div>
+            <h1 className="text-lg font-extrabold leading-tight text-ink">
+              Study<span className="text-accent">Pilot</span>
+            </h1>
+            <p className="text-xs font-semibold text-faint">Admin</p>
+          </div>
+        </div>
 
-        <label className="mt-6 block text-sm text-neutral-300">
-          Email
-          <input
+        <div className="space-y-3">
+          <Input
             type="email"
             required
+            placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 w-full rounded-md border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-neutral-400"
           />
-        </label>
-
-        <label className="mt-4 block text-sm text-neutral-300">
-          Password
-          <input
+          <Input
             type="password"
             required
+            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 w-full rounded-md border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-neutral-400"
           />
-        </label>
+        </div>
 
-        {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+        <ErrorText>{error}</ErrorText>
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="mt-6 w-full rounded-md bg-neutral-100 px-3 py-2 text-sm font-medium text-neutral-900 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={submitting} className="mt-6 w-full">
           {submitting ? 'Signing in…' : 'Sign in'}
-        </button>
+        </Button>
       </form>
     </div>
   );
