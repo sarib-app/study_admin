@@ -37,6 +37,7 @@ export default function ContentLandingPage() {
         <div className="max-w-2xl space-y-3">
           {subjects.map((subject) => {
             const isOpen = expanded === subject.id;
+            const totalContent = subject.topics.reduce((sum, t) => sum + (t.content_count ?? 0), 0);
             return (
               <Card key={subject.id} className="overflow-hidden p-0">
                 <button
@@ -54,7 +55,8 @@ export default function ContentLandingPage() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-bold text-ink">{subject.name}</p>
                     <p className="text-xs text-faint">
-                      {subject.topics.length} topic{subject.topics.length === 1 ? '' : 's'}
+                      {subject.topics.length} topic{subject.topics.length === 1 ? '' : 's'} · {totalContent} content item
+                      {totalContent === 1 ? '' : 's'}
                     </p>
                   </div>
                 </button>
@@ -73,8 +75,11 @@ export default function ContentLandingPage() {
                               href={`/topics/${topic.id}/content`}
                               className="flex items-center justify-between rounded-lg bg-white/[0.02] px-3 py-2 text-sm text-soft transition hover:bg-white/[0.05] hover:text-ink"
                             >
-                              {topic.name}
-                              <ChevronRight size={14} className="text-faint" />
+                              <span>{topic.name}</span>
+                              <span className="flex items-center gap-2 text-faint">
+                                {topic.content_count ?? 0} item{topic.content_count === 1 ? '' : 's'}
+                                <ChevronRight size={14} />
+                              </span>
                             </Link>
                           </li>
                         ))}

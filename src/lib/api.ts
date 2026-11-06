@@ -12,6 +12,8 @@ export type Topic = {
   subject_id: number;
   name: string;
   position: number;
+  content_count?: number;
+  questions_count?: number;
 };
 
 export type Subject = {
@@ -25,9 +27,11 @@ export type Subject = {
 export type LearningContent = {
   id: number;
   topic_id: number;
-  type: 'note' | 'video' | 'flashcard';
+  type: 'note' | 'video' | 'flashcard' | 'document';
   title: string;
   body: string | null;
+  original_filename: string | null;
+  size_bytes: number;
   position: number;
 };
 
@@ -170,11 +174,34 @@ export const topicsApi = {
 
 export const contentApi = {
   list: (topicId: number) => request<LearningContent[]>(`/admin/topics/${topicId}/content`),
-  create: (topicId: number, data: { type: LearningContent['type']; title: string; body?: string }) =>
+  create: (topicId: number, data: { type: 'note' | 'video' | 'flashcard'; title: string; body?: string }) =>
     request<LearningContent>(`/admin/topics/${topicId}/content`, { method: 'POST', body: JSON.stringify(data) }),
+  createDocument: (topicId: number, data: { title: string; file: File }) => {
+    const formData = new FormData();
+    formData.append('type', 'document');
+    formData.append('title', data.title);
+    formData.append('file', data.file);
+    return requestForm<LearningContent>(`/admin/topics/${topicId}/content`, formData);
+  },
   update: (id: number, data: { title?: string; body?: string; position?: number }) =>
     request<LearningContent>(`/admin/content/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   remove: (id: number) => request<void>(`/admin/content/${id}`, { method: 'DELETE' }),
+  /** The download route needs the auth header, so a plain <a href> won't work — this fetches
+   * the file as this admin and hands the browser a blob to save instead. */
+  download: async (id: number, filename: string) => {
+    const token = getToken();
+    const res = await fetch(`${baseUrl}/admin/content/${id}/download`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) throw new ApiError('Download failed', res.status);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
 };
 
 export const questionsApi = {
