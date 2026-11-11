@@ -60,6 +60,28 @@ export type ManagedUser = {
   subjects_count: number;
 };
 
+export type ManagedUserDetail = {
+  id: number;
+  name: string;
+  email: string;
+  role: 'student' | 'admin';
+  grade_year: string | null;
+  curriculum: string | null;
+  city: string | null;
+  goal_type: string | null;
+  weekly_study_goal_hours: number | null;
+  xp: number;
+  created_at: string;
+  subjects: { id: number; name: string; color_key: string | null }[];
+  stats: {
+    completed_sessions: number;
+    total_study_minutes: number;
+    total_quiz_attempts: number;
+    quiz_completion_rate: number;
+    documents_count: number;
+  };
+};
+
 export type AdminDocument = {
   id: number;
   user_id: number;
@@ -228,6 +250,9 @@ export const documentsApi = {
 
 export const usersApi = {
   list: (page = 1) => request<Paginated<ManagedUser>>(`/admin/users?page=${page}`),
+  show: (id: number) => request<ManagedUserDetail>(`/admin/users/${id}`),
+  update: (id: number, data: { name: string; grade_year?: string | null; curriculum?: string | null; city?: string | null }) =>
+    request<ManagedUserDetail>(`/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 };
 
 export type OverviewStats = {

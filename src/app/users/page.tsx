@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { Protected } from '@/components/protected';
@@ -60,14 +61,14 @@ export default function UsersPage() {
               </thead>
               <tbody>
                 {users.map((user) => (
-                  <tr key={user.id} className="border-b border-line last:border-0">
-                    <td className="px-5 py-3 font-semibold text-ink">
-                      <div className="flex items-center gap-2.5">
+                  <tr key={user.id} className="border-b border-line last:border-0 hover:bg-bg/60">
+                    <td className="p-0">
+                      <Link href={`/users/${user.id}`} className="flex items-center gap-2.5 px-5 py-3 font-semibold text-ink">
                         <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent-soft text-xs font-bold text-accent">
                           {user.name.charAt(0).toUpperCase()}
                         </div>
                         {user.name}
-                      </div>
+                      </Link>
                     </td>
                     <td className="px-5 py-3 text-soft">{user.email}</td>
                     <td className="px-5 py-3">
